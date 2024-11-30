@@ -294,6 +294,7 @@
             this.TopMost = true;
             this.TransparencyKey = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
             this.Load += new System.EventHandler(this.Remote_Load);
+            this.Shown += new System.EventHandler(this.Remote_Shown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.Remote_MouseMove);
             this.ResumeLayout(false);
 

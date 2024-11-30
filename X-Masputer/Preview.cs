@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Resources;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace X_Masputer
@@ -13,6 +16,7 @@ namespace X_Masputer
         private List<PictureBox> _lights = new List<PictureBox>();
         private List<Bitmap> _arrayTemplate = new List<Bitmap>();
         private int _arrayTemplateIterStartIndex = 0;
+        private bool _efficientAlwaysOnTop = false;
 
         public Preview()
         {
@@ -54,6 +58,27 @@ namespace X_Masputer
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
 
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsIconic(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowTextLength(IntPtr hWnd);
+
         private const int GWL_EXSTYLE = -20;
         private const int WS_EX_LAYERED = 0x00080000;
         private const int WS_EX_TRANSPARENT = 0x00000020;
@@ -64,6 +89,81 @@ namespace X_Masputer
         private const uint SWP_NOSIZE = 0x0001;
         private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOACTIVATE = 0x0010;
+
+        private const int GWL_STYLE = -16;
+        private const long WS_BORDER = 0x00800000;
+        private const long WS_CAPTION = 0x00C00000;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+        private bool IsAnyWindowOverlappingTaskbar()
+        {
+            const int tolerance = 10;
+
+            // Get the specified monitor
+            Rectangle workingArea = Screen.AllScreens[_screen].WorkingArea;
+            Rectangle screenBounds = Screen.AllScreens[_screen].Bounds;
+
+            // Shrink the taskbar bounds by the tolerance on all sides
+            Rectangle taskbarBounds = new Rectangle(
+                screenBounds.Left + tolerance,
+                workingArea.Bottom + tolerance,
+                screenBounds.Width - 2 * tolerance,
+                (screenBounds.Height - workingArea.Height) - 2 * tolerance
+            );
+
+            var processes = Process.GetProcesses()
+                .Where(p => p.MainWindowHandle != IntPtr.Zero && p.Id != Process.GetCurrentProcess().Id);
+
+            foreach (var process in processes)
+            {
+                IntPtr handle = process.MainWindowHandle;
+
+                if (IsIconic(handle))
+                    continue;
+
+                if (GetWindowRect(handle, out RECT rect))
+                {
+                    Rectangle windowBounds = new Rectangle(
+                        rect.Left,
+                        rect.Top,
+                        rect.Right - rect.Left,
+                        rect.Bottom - rect.Top
+                    );
+
+                    // Debugging output
+                    Console.WriteLine($"Checking Process: {process.ProcessName}");
+                    Console.WriteLine($"Window Bounds: {windowBounds}");
+                    Console.WriteLine($"Taskbar Bounds: {taskbarBounds}");
+
+                    // Check if the window overlaps with the shrunk taskbar
+                    if (windowBounds.IntersectsWith(taskbarBounds))
+                    {
+                        // Exclude specific processes
+                        if (process.ProcessName == "devenv" || process.ProcessName == "explorer" || process.ProcessName == "TextInputHost")
+                        {
+                            Console.WriteLine($"Ignored Process: {process.ProcessName}");
+                            continue;
+                        }
+
+                        // Debug output for detected overlap
+                        Console.WriteLine($"Overlapping Window Detected: {process.ProcessName}");
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         private void MakeWindowUnclickable()
         {
@@ -94,7 +194,42 @@ namespace X_Masputer
             this.Height = Screen.AllScreens[_screen].Bounds.Height - Screen.AllScreens[_screen].WorkingArea.Height;
             this.Opacity = 1;
             MakeWindowUnclickable();
+
+            //if (Properties.Settings.Default.EfficientAlwaysOnTop)
+            //{
+            //    EfficientAlwaysOnTop();
+            //}
+            //else
+            //{
+            //    InefficientAlwaysOnTop();
+            //}
         }
+
+        public void EfficientAlwaysOnTop()
+        {
+            _efficientAlwaysOnTop = true;
+
+            AlwaysOnTop.Enabled = true;
+        }
+
+        public void InefficientAlwaysOnTop()
+        {
+            _efficientAlwaysOnTop = false;
+
+            AlwaysOnTop.Enabled = false;
+
+            var handle = this.Handle;
+            Thread thread = new Thread((handle) =>
+            {
+                while (!_efficientAlwaysOnTop) // Instead of timer for more precise timing and hiding bugs with taskbar in win 11. (Inefficient)
+                {
+                    SetAlwaysOnTop((IntPtr)handle);
+                }
+            });
+            thread.Start(handle);
+        }
+
+        public bool IsEfficientAlwaysOnTop => _efficientAlwaysOnTop;
 
         private void ColorChanger_Tick(object sender, EventArgs e)
         {
@@ -208,6 +343,31 @@ namespace X_Masputer
                     _arrayTemplate.Add(colors[i]);
                 }
             }
+        }
+
+        private void WindowDetection_Tick(object sender, EventArgs e)
+        {
+            try
+            {
+                Thread thread = new Thread(() =>
+                {
+                    if (IsAnyWindowOverlappingTaskbar())
+                    {
+                        Invoke(new Action(() => this.Opacity = 0));
+                    }
+                    else
+                    {
+                        var opacity = Properties.Settings.Default.Opacity;
+                        if (opacity == 0)
+                        {
+                            opacity = 1;
+                        }
+                        Invoke(new Action(() => this.Opacity = opacity));
+                    }
+                });
+                thread.Start();
+            }
+            catch { }
         }
     }
 

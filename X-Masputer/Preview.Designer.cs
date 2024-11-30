@@ -33,12 +33,12 @@
             this.AlwaysOnTop = new System.Windows.Forms.Timer(this.components);
             this.LightPB = new System.Windows.Forms.PictureBox();
             this.ColorChanger = new System.Windows.Forms.Timer(this.components);
+            this.WindowDetection = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.LightPB)).BeginInit();
             this.SuspendLayout();
             // 
             // AlwaysOnTop
             // 
-            this.AlwaysOnTop.Enabled = true;
             this.AlwaysOnTop.Interval = 1;
             this.AlwaysOnTop.Tick += new System.EventHandler(this.AlwaysOnTop_Tick);
             // 
@@ -58,6 +58,12 @@
             this.ColorChanger.Enabled = true;
             this.ColorChanger.Interval = 1000;
             this.ColorChanger.Tick += new System.EventHandler(this.ColorChanger_Tick);
+            // 
+            // WindowDetection
+            // 
+            this.WindowDetection.Enabled = true;
+            this.WindowDetection.Interval = 2500;
+            this.WindowDetection.Tick += new System.EventHandler(this.WindowDetection_Tick);
             // 
             // Preview
             // 
@@ -83,10 +89,10 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Timer AlwaysOnTop;
         private System.Windows.Forms.PictureBox LightPB;
         private System.Windows.Forms.Timer ColorChanger;
+        private System.Windows.Forms.Timer AlwaysOnTop;
+        private System.Windows.Forms.Timer WindowDetection;
     }
 }
 
