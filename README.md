@@ -4,6 +4,8 @@
 
 _Program written by human, readme written by ai._
 
+![Screenshot](file:///G:/Projekte/GitHub/X-Masputer/banner.png "Screenshot")
+
 ## Features ✨
 
 - **Festive Light Chain:** Displays a string of colorful lights on your taskbar, supporting multiple screens.
