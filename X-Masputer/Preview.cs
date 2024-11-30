@@ -82,7 +82,7 @@ namespace X_Masputer
 
         private void AlwaysOnTop_Tick(object sender, EventArgs e)
         {
-            SetAlwaysOnTop(FindWindow(null, "Form1"));
+            SetAlwaysOnTop(this.Handle);
         }
 
         private void Form1_Shown(object sender, EventArgs e)

@@ -39,6 +39,7 @@
             // AlwaysOnTop
             // 
             this.AlwaysOnTop.Enabled = true;
+            this.AlwaysOnTop.Interval = 1;
             this.AlwaysOnTop.Tick += new System.EventHandler(this.AlwaysOnTop_Tick);
             // 
             // LightPB
