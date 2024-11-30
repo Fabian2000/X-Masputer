@@ -4,7 +4,7 @@
 
 _Program written by human, readme written by ai._
 
-![Screenshot](file:///G:/Projekte/GitHub/X-Masputer/banner.png "Screenshot")
+![Screenshot](./banner.png "Screenshot")
 
 ## Features ✨
 
