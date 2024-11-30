@@ -110,7 +110,7 @@ namespace X_Masputer
 
         private static void RoundButtonEdges(Button button)
         {
-            int diameter = Math.Min(button.Width, button.Height); // Perfekte Rundung basierend auf der kleineren Dimension
+            int diameter = Math.Min(button.Width, button.Height);
             IntPtr rgn = CreateRoundRectRgn(0, 0, button.Width, button.Height, diameter, diameter);
             button.Region = Region.FromHrgn(rgn);
         }

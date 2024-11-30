@@ -69,7 +69,7 @@ namespace X_Masputer
         {
             IntPtr hWnd = this.Handle;
 
-            // Aktuelle Fensterstile abrufen und Layered/Transparent hinzufügen
+            // Call current window styles and add Layered/Transparent
             int extendedStyle = GetWindowLong(hWnd, GWL_EXSTYLE);
             SetWindowLong(hWnd, GWL_EXSTYLE, extendedStyle | WS_EX_LAYERED | WS_EX_TRANSPARENT);
         }
@@ -140,7 +140,6 @@ namespace X_Masputer
 
         public void Mode1()
         {
-            // Standardmodus: Zyklischer Wechsel der Farben (alle Farben)
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Blue);
             _arrayTemplate.Add(Lights.Light_Effect_Red);
@@ -150,35 +149,30 @@ namespace X_Masputer
 
         public void Mode2()
         {
-            // Zeige nur Blautöne
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Blue);
         }
 
         public void Mode3()
         {
-            // Zeige nur Rottöne
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Red);
         }
 
         public void Mode4()
         {
-            // Zeige nur Grüntöne
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Green);
         }
 
         public void Mode5()
         {
-            // Zeige nur Gelbtöne
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Yellow);
         }
 
         public void Mode6()
         {
-            // Abwechselnd Blau und Rot
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Blue);
             _arrayTemplate.Add(Lights.Light_Effect_Red);
@@ -186,7 +180,6 @@ namespace X_Masputer
 
         public void Mode7()
         {
-            // Abwechselnd Grün und Gelb
             _arrayTemplate.Clear();
             _arrayTemplate.Add(Lights.Light_Effect_Green);
             _arrayTemplate.Add(Lights.Light_Effect_Yellow);
@@ -196,7 +189,6 @@ namespace X_Masputer
         {
             _arrayTemplate.Clear();
 
-            // Farben definieren
             var colors = new List<Bitmap>
             {
                 Lights.Light_Effect_Blue,
@@ -205,15 +197,12 @@ namespace X_Masputer
                 Lights.Light_Effect_Yellow
             };
 
-            Random random = new Random((int)DateTime.UtcNow.Ticks); // Zufallsgenerator
+            Random random = new Random((int)DateTime.UtcNow.Ticks);
 
-            // Dynamisch Gruppen im Template erstellen
             for (int i = 0; i < colors.Count; i++)
             {
-                // Zufällige Gruppengröße zwischen 3 und 5
                 int groupSize = random.Next(3, 6);
 
-                // Füge die Farbe mehrfach in den Template-Array ein
                 for (int j = 0; j < groupSize; j++)
                 {
                     _arrayTemplate.Add(colors[i]);
